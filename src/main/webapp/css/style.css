@@ -448,3 +448,185 @@ select.form-control {
     background: #e11d48;
     color: white;
 }
+
+/* Reviews Styling */
+.reviews-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.reviews-header h4 {
+    font-size: 0.95rem;
+    color: var(--secondary);
+    font-weight: 700;
+}
+
+.avg-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.avg-rating .stars {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.avg-rating .count {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.all-reviews {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+    padding-right: 0.5rem;
+}
+
+.all-reviews::-webkit-scrollbar {
+    width: 4px;
+}
+
+.all-reviews::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+.review-item {
+    background: rgba(0, 0, 0, 0.02);
+    padding: 0.8rem;
+    border-radius: 12px;
+    margin-bottom: 0.8rem;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.review-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}
+
+.reviewer-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.review-stars-small {
+    color: var(--accent);
+    font-size: 0.75rem;
+}
+
+.review-comment {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.no-reviews {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 1rem 0;
+}
+
+/* Add Review Form Styling */
+.add-review-form {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.8rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 0.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.rating-input input {
+    display: none;
+}
+
+.rating-input label {
+    font-size: 1.2rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.rating-input label:hover,
+.rating-input label:hover ~ label,
+.rating-input input:checked ~ label {
+    color: var(--accent);
+}
+
+.comment-input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.comment-input-group textarea {
+    flex-grow: 1;
+    border: none;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 0.6rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    resize: none;
+    height: 40px;
+    transition: all 0.3s ease;
+}
+
+.comment-input-group textarea:focus {
+    outline: none;
+    background: white;
+    box-shadow: 0 0 0 2px var(--primary);
+    height: 80px;
+}
+
+.btn-send {
+    background: var(--primary);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-send:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+/* Delete confirmation highlights */
+.btn-delete-mgmt {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-delete-mgmt:active {
+    transform: scale(0.98);
+}
+

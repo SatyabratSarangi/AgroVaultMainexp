@@ -1,7 +1,7 @@
 <%@ page import="java.sql.*, com.agrovault.DBConfig" %>
     <%@ include file="components/nav.jsp" %>
 <%
-    // Ensure user is logged in
+    // logged in
     if (sessionUserId == null) {
         response.sendRedirect("login.jsp");
         return;
@@ -22,6 +22,24 @@
                     </div>
                 </div>
 
+                <% 
+                    String msg = request.getParameter("msg");
+                    if (msg != null) {
+                        String alertClass = "alert-success";
+                        String displayMsg = "";
+                        if (msg.equals("deleted")) displayMsg = "Listing deleted successfully.";
+                        if (msg.equals("added")) displayMsg = "Listing added successfully.";
+                        if (msg.equals("updated")) displayMsg = "Listing updated successfully.";
+                        if (msg.equals("error")) { alertClass = "alert-error"; displayMsg = "An error occurred."; }
+                        if (!displayMsg.isEmpty()) {
+                %>
+                        <div class="alert <%= alertClass %>" style="margin-bottom: 2rem;">
+                            <%= displayMsg %>
+                        </div>
+                <%      }
+                    }
+                %>
+
                 <% if ("FARMER".equals(sessionRole)) { %>
                     <!-- Smart Filter driven by JS -->
                     <div class="filter-bar">
@@ -37,14 +55,13 @@
 
                     try {
                         conn = DBConfig.getConnection();
-                        // Showing units based on user's city first, or could just show all
-                        // Let's show all and highlight matched city or prioritize if asked,
-                        // We'll select all and use JS for quick client side, but order by city match
+
+
+
                         String query = "SELECT * FROM storage_units ORDER BY CASE WHEN city = ? THEN 1 ELSE 2 END, id DESC";
                         pstmt = conn.prepareStatement(query);
                         pstmt.setString(1, userCity);
                         rs = pstmt.executeQuery();
-
                         while (rs.next()) {
                             int unitId = rs.getInt("id");
                             String title = rs.getString("title");
@@ -56,6 +73,11 @@
                             if(imageUrl == null || imageUrl.trim().isEmpty()) {
                                 imageUrl = "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
                             }
+
+
+
+
+
                 %>
                         <div class="card storage-card" data-city="<%= city.toLowerCase() %>"
                             data-title="<%= title.toLowerCase() %>">
@@ -93,13 +115,80 @@
                                         <span class="detail-value">&#8377;<%= price %></span>
                                     </div>
                                 </div>
+                                <div class="reviews-section">
+                                    <div class="reviews-header">
+                                        <h4>User Reviews</h4>
+                                        <div class="avg-rating">
+                                            <%
+                                                double avgRating = 0;
+                                                int reviewCount = 0;
+                                                try (PreparedStatement psR = conn.prepareStatement("SELECT AVG(rating), COUNT(*) FROM reviews WHERE unit_id = ?")) {
+                                                    psR.setInt(1, unitId);
+                                                    ResultSet rsR = psR.executeQuery();
+                                                    if(rsR.next()) {
+                                                        avgRating = rsR.getDouble(1);
+                                                        reviewCount = rsR.getInt(2);
+                                                    }
+                                                } catch(Exception e) {}
+                                            %>
+                                            <span class="stars"><%= String.format("%.1f", avgRating) %> ★</span>
+                                            <span class="count">(<%= reviewCount %>)</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="all-reviews">
+                                        <%
+                                            try (PreparedStatement psR = conn.prepareStatement("SELECT r.*, u.name FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.unit_id = ? ORDER BY r.created_at DESC LIMIT 3")) {
+                                                psR.setInt(1, unitId);
+                                                ResultSet rsR = psR.executeQuery();
+                                                boolean foundReview = false;
+                                                while(rsR.next()) {
+                                                    foundReview = true;
+                                        %>
+                                            <div class="review-item">
+                                                <div class="review-header-info">
+                                                    <span class="reviewer-name"><%= rsR.getString("name") %></span>
+                                                    <span class="review-stars-small"><%= "★".repeat(rsR.getInt("rating")) %></span>
+                                                </div>
+                                                <p class="review-comment"><%= rsR.getString("comment") %></p>
+                                            </div>
+                                        <%
+                                                }
+                                                if(!foundReview) {
+                                                    out.println("<p class='no-reviews'>No reviews yet. Be the first!</p>");
+                                                }
+                                            } catch(Exception e) {}
+                                        %>
+                                    </div>
+
+                                    <% if ("FARMER".equals(sessionRole)) { %>
+                                        <div class="add-review-form">
+                                            <form action="add-review.jsp" method="post">
+                                                <input type="hidden" name="unitId" value="<%= unitId %>">
+                                                <div class="rating-input">
+                                                    <input type="radio" name="rating" value="5" id="star5-<%= unitId %>" required><label for="star5-<%= unitId %>">★</label>
+                                                    <input type="radio" name="rating" value="4" id="star4-<%= unitId %>"><label for="star4-<%= unitId %>">★</label>
+                                                    <input type="radio" name="rating" value="3" id="star3-<%= unitId %>"><label for="star3-<%= unitId %>">★</label>
+                                                    <input type="radio" name="rating" value="2" id="star2-<%= unitId %>"><label for="star2-<%= unitId %>">★</label>
+                                                    <input type="radio" name="rating" value="1" id="star1-<%= unitId %>"><label for="star1-<%= unitId %>">★</label>
+                                                </div>
+                                                <div class="comment-input-group">
+                                                    <textarea name="comment" placeholder="Leave a feedback..." required></textarea>
+                                                    <button type="submit" class="btn-send">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    <% } %>
+                                </div>
 
                                 <% if (status.equals("AVAILABLE")) { %>
                                     <a href="booking.jsp?unitId=<%= unitId %>" class="btn btn-primary"
-                                        style="width: 100%;">Book Now</a>
+                                        style="width: 100%; margin-top: 1rem;">Book Now</a>
                                     <% } else { %>
                                         <button class="btn btn-outline"
-                                            style="width: 100%; border-color: #aaa; color: #aaa; cursor: not-allowed;"
+                                            style="width: 100%; border-color: #aaa; color: #aaa; cursor: not-allowed; margin-top: 1rem;"
                                             disabled>Currently Full</button>
                                         <% } %>
                             </div>
@@ -114,6 +203,8 @@
                         if (conn != null) try { conn.close(); } catch (SQLException e) {}
                     }
                 %>
+
+
                 </div>
                 <% } else { 
                     // OWNER VIEW DATA

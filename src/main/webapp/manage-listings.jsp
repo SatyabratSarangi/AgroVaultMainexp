@@ -61,13 +61,37 @@
         }
     } else if ("delete".equals(action)) {
         int unitId = Integer.parseInt(request.getParameter("unitId"));
-        try (Connection conn = DBConfig.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement("DELETE FROM storage_units WHERE id = ? AND owner_id = ?")) {
-            pstmt.setInt(1, unitId);
-            pstmt.setInt(2, sessionUserId);
-            pstmt.executeUpdate();
-            response.sendRedirect("dashboard.jsp?msg=deleted");
-            return;
+        try (Connection conn = DBConfig.getConnection()) {
+            conn.setAutoCommit(false); // Use transaction for safety
+            try {
+                // Delete associated reviews first (though they should cascade if DB was updated, this is safer)
+                try (PreparedStatement ps1 = conn.prepareStatement("DELETE FROM reviews WHERE unit_id = ?")) {
+                    ps1.setInt(1, unitId);
+                    ps1.executeUpdate();
+                }
+                // Delete associated bookings
+                try (PreparedStatement ps2 = conn.prepareStatement("DELETE FROM bookings WHERE unit_id = ?")) {
+                    ps2.setInt(1, unitId);
+                    ps2.executeUpdate();
+                }
+                // Finally delete the unit
+                try (PreparedStatement ps3 = conn.prepareStatement("DELETE FROM storage_units WHERE id = ? AND owner_id = ?")) {
+                    ps3.setInt(1, unitId);
+                    ps3.setInt(2, sessionUserId);
+                    int deleted = ps3.executeUpdate();
+                    if (deleted > 0) {
+                        conn.commit();
+                        response.sendRedirect("dashboard.jsp?msg=deleted");
+                        return;
+                    } else {
+                        conn.rollback();
+                        msg = "<div class='alert alert-error'>Error: Listing not found or you don't have permission.</div>";
+                    }
+                }
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (Exception e) {
             msg = "<div class='alert alert-error'>Error deleting unit: " + e.getMessage() + "</div>";
         }

@@ -26,8 +26,6 @@
                 pstmt.setString(4, comment);
                 pstmt.executeUpdate();
             }
-            
-            // Redirect back to dashboard to see the new review
             response.sendRedirect("dashboard.jsp");
         } catch (Exception e) {
             out.println("<div style='color:red;'>Error saving review: " + e.getMessage() + "</div>");
